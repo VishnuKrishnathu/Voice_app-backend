@@ -28,15 +28,11 @@ userModel.pre('save', async function(next){
 })
 
 userModel.static("login" , async function(email: string, password: string) {
-    const user = await this.findOne({email});
+    const user = await this.findOne({emailId : email});
     if(user){
-        try{
-            await bcrypt.compare(password, user.password);
-            return user;
-        }catch(err){
-            console.log(err);
-            throw new Error("User has entered the wrong password");
-        }
+        let res_password = await bcrypt.compare(password, user.password);
+        if (res_password) return user;
+        throw new Error("User has entered the wrong password");
     }else {
         throw new Error("User has entered the wrong email address");
     }
