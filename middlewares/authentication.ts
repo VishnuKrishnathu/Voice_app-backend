@@ -43,7 +43,7 @@ const maxAge = 60*60;       //👈setting the expiry time of access token
 
 
 // Export modules👇 
-module.exports.signInTokens = async( req: IRequest, res:IResponse ) => {
+module.exports.signInTokens = async function( req: IRequest, res:IResponse ) {
     const {
         emailId,
         password
@@ -57,10 +57,13 @@ module.exports.signInTokens = async( req: IRequest, res:IResponse ) => {
         await user.save();
         let accessToken = generateAccessToken(user._id);
         let refreshToken = jwt.sign({_id: user._id}, process.env.REFRESH_TOKEN_SECRET);
+        res.cookie('refreshToken', refreshToken, {
+            maxAge: 60*60*24*1000,
+            httpOnly: true
+        });
         res.json({
             userCreated : true,
-            accessToken,
-            refreshToken
+            accessToken
         });
     }
     catch(err){
@@ -86,7 +89,7 @@ module.exports.refreshToken = function (req: IRequest, res:IResponse, next:NextF
         });
     }
     catch(err){
-        console.log(err.message);
+        console.log(err);
         res.status(500);
         res.json({
             verified: false,
