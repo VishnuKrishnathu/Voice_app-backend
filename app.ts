@@ -3,6 +3,7 @@ const authentication = require("./views/authentication");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const socket = require("./views/socket_connection");
 
 require("dotenv").config();
 
