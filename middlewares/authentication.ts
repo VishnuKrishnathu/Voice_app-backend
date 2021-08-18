@@ -119,9 +119,16 @@ module.exports.verifyUser = async function (req: IRequest, res:IResponse, next: 
 module.exports.loginUser = async function (req: IRequest, res: IResponse, next: NextFunction){
     try{
         let user = await UserModel.login(req.body.emailId, req.body.password);
+        let accessToken = generateAccessToken(user._id);
+        let refreshToken = jwt.sign({_id: user._id}, process.env.REFRESH_TOKEN_SECRET);
         res.status(200);
+        res.cookie('refreshToken', refreshToken, {
+            maxAge: 60*60*24*1000,
+            httpOnly: true
+        });
         res.json({
-            loggedIn : true
+            loggedIn : true,
+            accessToken
         });
     }
     catch(err){
@@ -131,4 +138,14 @@ module.exports.loginUser = async function (req: IRequest, res: IResponse, next: 
             error: err.message
         });
     }
+}
+
+module.exports.logOutfunction = async (req : IRequest, res : IResponse, next : NextFunction) => {
+    res.status(200);
+    res.cookie('refreshToken', "", {
+        httpOnly: true
+    });
+    res.json({
+        loggedIn: false
+    });
 }

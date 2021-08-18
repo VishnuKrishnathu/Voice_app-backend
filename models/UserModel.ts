@@ -28,7 +28,9 @@ userModel.pre('save', async function(next){
 })
 
 userModel.static("login" , async function(email: string, password: string) {
+    console.log(email);
     const user = await this.findOne({emailId : email});
+    console.log(user);
     if(user){
         let res_password = await bcrypt.compare(password, user.password);
         if (res_password) return user;
