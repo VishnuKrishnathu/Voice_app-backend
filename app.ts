@@ -1,9 +1,15 @@
 const express = require("express");
-const authentication = require("./views/authentication");
+const authentication = require("./Router/authentication");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const socket = require("./views/socket_connection");
+const socketio = require("socket.io");
+const http = require('http');
+const { socketConnection } = require('./Router/socket_connection');
+
+// types import 👇
+import { Socket } from 'socket.io';
+import {Response, Request} from "express";
 
 require("dotenv").config();
 
@@ -17,6 +23,25 @@ app.use(cors({
 
 const PORT = process.env.PORT;
 
+// connecting the views 👇
+app.use(authentication);
+
+// calling the socket connection function👇
+const server = http.createServer(app);
+const io = socketio(server, {
+    cors : {
+        origin : "http://localhost:3000/"
+    }
+});
+
+io.on('connection', function( socket: Socket) {
+    console.log('We have a connection!!!');
+
+    socket.on('disconnect', function() {
+        console.log("Disconnected");
+    }) 
+});
+
 // Connect to mongodb database👇
 let username = process.env.MONGO_USER;
 let password = process.env.MONGO_PASSWORD;
@@ -27,10 +52,8 @@ db.once('open', function() {
     console.log("Connected to the database");
 });
 
-// connecting the views 👇
-app.use(authentication);
 
 
-app.listen(PORT, ()=> {
+server.listen(PORT, ()=> {
     console.log(`server running on port ${PORT}`)
 })

@@ -1,4 +1,6 @@
-const {Router} = require("express")
+const {Router} = require("express");
+import { Request, Response } from "express";
+
 const {
     signInTokens, 
     refreshToken,
@@ -8,6 +10,8 @@ const {
 } = require("../middlewares/authentication");
 
 const router = Router();
+
+router.get('/', function(req : Request,res : Response){res.send("Hello World")});
 
 router.post('/signin', signInTokens);
 
