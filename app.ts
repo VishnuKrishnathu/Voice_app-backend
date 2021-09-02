@@ -1,5 +1,6 @@
 const express = require("express");
 const authentication = require("./Router/authentication");
+const rooms = require("./Router/rooms");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -24,13 +25,14 @@ app.use(cors({
 const PORT = process.env.PORT;
 
 // connecting the views 👇
+app.use(rooms);
 app.use(authentication);
 
 // calling the socket connection function👇
 const server = http.createServer(app);
 const io = socketio(server, {
     cors : {
-        origin : "http://localhost:3000/"
+        origin : "http://localhost:3000"
     }
 });
 
