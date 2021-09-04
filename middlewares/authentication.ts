@@ -1,4 +1,4 @@
-import { NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 const UserModel = require("../models/UserModel");
 
 const jwt = require("jsonwebtoken");
@@ -11,13 +11,12 @@ function generateAccessToken (userId: string): string{
 interface IUserModel {
     emailId ?: string;
     password ?: string;
+    username ?: string;
 }
 
 // Interfaces👇
-interface IRequest extends Express.Request {
-    body ?: IUserModel;
-    cookies ?: any;
-    headers ?: any;
+interface IRequest extends Request {
+    body : IUserModel;
     user ?: IUserModel;
 }
 
@@ -32,11 +31,8 @@ interface IJson {
     }): any
 }
 
-interface IResponse extends Express.Response {
-    status ?:any;
-    json ?: IJson;
-    sendStatus ?: {(code: number):any};
-    cookie ?: {(key: string, val: any, expiry: object): any};
+interface IResponse extends Response {
+    json : IJson;
 }
 
 const maxAge = 60*60;       //👈setting the expiry time of access token
@@ -46,13 +42,15 @@ const maxAge = 60*60;       //👈setting the expiry time of access token
 module.exports.signInTokens = async function( req: IRequest, res:IResponse ) {
     const {
         emailId,
-        password
+        password,
+        username
     } = req.body;
 
     try {
         const user = new UserModel({
             emailId,
-            password
+            password,
+            username
         });
         await user.save();
         let accessToken = generateAccessToken(user._id);
@@ -118,7 +116,7 @@ module.exports.verifyUser = async function (req: IRequest, res:IResponse, next: 
 
 module.exports.loginUser = async function (req: IRequest, res: IResponse, next: NextFunction){
     try{
-        let user = await UserModel.login(req.body.emailId, req.body.password);
+        let user = await UserModel.login(req.body.username, req.body.password);
         let accessToken = generateAccessToken(user._id);
         let refreshToken = jwt.sign({_id: user._id}, process.env.REFRESH_TOKEN_SECRET);
         res.status(200);
@@ -148,4 +146,31 @@ module.exports.logOutfunction = async (req : IRequest, res : IResponse, next : N
     res.json({
         loggedIn: false
     });
+}
+
+module.exports.validateUsername = async function(req : Request, res : Response){
+    let username = req.query.username;
+    try{
+        let username_db = await UserModel.findOne({
+            username
+        });
+        if(!username_db){
+            res.status(200).json({
+                error : false,
+                message: "Username approved"
+            })
+            return;
+        }
+        res.status(400).json({
+            error : true,
+            message : "Username already exists"
+        })
+    }
+    catch(err){
+        console.log(err);
+        res.status(500).json({
+            error : true,
+            message : "Error in the backend"
+        })
+    }
 }

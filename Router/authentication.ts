@@ -4,9 +4,9 @@ import { Request, Response } from "express";
 const {
     signInTokens, 
     refreshToken,
-    verifyUser,
     loginUser,
-    logOutfunction
+    logOutfunction,
+    validateUsername
 } = require("../middlewares/authentication");
 
 const router = Router();
@@ -19,6 +19,8 @@ router.get('/refresh', refreshToken);
 
 router.post('/login', loginUser);
 
-router.get('/logout', logOutfunction)
+router.get('/logout', logOutfunction);
+
+router.get('/validateUsername', validateUsername);
 
 module.exports = router;

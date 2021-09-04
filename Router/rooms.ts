@@ -6,4 +6,6 @@ const router = Router();
 
 router.get('/checkRooms', verifyUser, roomController.checkRooms);
 
+router.post('/addRoom', verifyUser, roomController.addRoom);
+
 module.exports = router;

@@ -15,7 +15,7 @@ const roomModel = new Schema({
     },
     chatroom : {
         type: Boolean,
-        default : false
+        default : true 
     },
     voiceRoom : {
         type: Boolean,
@@ -29,7 +29,12 @@ const roomModel = new Schema({
         type : Types.ObjectId,
         ref: 'Usersdata',
         required: true
-    }
+    },
+    roomMembers : [{
+        type: Types.ObjectId,
+        ref: 'Usersdata',
+        required : true
+    }]
 });
 
 module.exports = model('Room', roomModel)

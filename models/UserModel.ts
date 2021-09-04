@@ -1,10 +1,11 @@
 const bcrypt = require("bcrypt");
-import { Schema, model, Query } from "mongoose";
+import { Schema, model } from "mongoose";
 
 
 interface IUser {
     emailId: string,
-    password: string
+    password: string,
+    username : string
 }
 
 
@@ -17,7 +18,14 @@ const userModel = new Schema<IUser>({
     password: {
         type: String,
         required: true
+    },
+    username : {
+        type : String,
+        required : true,
+        unique: true
     }
+}, {
+    timestamps: true
 });
 
 
@@ -27,9 +35,8 @@ userModel.pre('save', async function(next){
     next();
 })
 
-userModel.static("login" , async function(email: string, password: string) {
-    console.log(email);
-    const user = await this.findOne({emailId : email});
+userModel.static("login" , async function(username: string, password: string) {
+    const user = await this.findOne({username: username});
     console.log(user);
     if(user){
         let res_password = await bcrypt.compare(password, user.password);
