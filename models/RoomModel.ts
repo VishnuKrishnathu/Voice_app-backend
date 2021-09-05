@@ -35,6 +35,8 @@ const roomModel = new Schema({
         ref: 'Usersdata',
         required : true
     }]
+}, {
+    timestamps: true
 });
 
 module.exports = model('Room', roomModel)
