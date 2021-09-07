@@ -13,27 +13,20 @@ const roomModel = new Schema({
         type: String,
         default: ""
     },
-    chatroom : {
-        type: Boolean,
-        default : true 
-    },
-    voiceRoom : {
-        type: Boolean,
-        default : false
-    },
     admin : [{
-        type: Types.ObjectId,
-        ref: 'Usersdata'
+        username : {
+            type : String,
+            required: true
+        }
     }],
     owner : {
-        type : Types.ObjectId,
-        ref: 'Usersdata',
+        type : String,
         required: true
     },
     roomMembers : [{
-        type: Types.ObjectId,
-        ref: 'Usersdata',
-        required : true
+        username : {
+            type: String
+        }
     }]
 }, {
     timestamps: true
