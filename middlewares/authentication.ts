@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-const UserModel = require("../models/UserModel");
-
+const { SQLUserModel } = require("../models/UserModel");
 const jwt = require("jsonwebtoken");
 
 // Generate access tokens 👇 
@@ -47,14 +46,12 @@ module.exports.signInTokens = async function( req: IRequest, res:IResponse ) {
     } = req.body;
 
     try {
-        const user = new UserModel({
-            emailId,
-            password,
-            username
-        });
-        await user.save();
-        let accessToken = generateAccessToken(user._id);
-        let refreshToken = jwt.sign({_id: user._id}, process.env.REFRESH_TOKEN_SECRET);
+        let user = new SQLUserModel(emailId, password, username);
+        await user.hashPassword();
+        let result = await user.save();
+        let ID = (result.rows.insertId);
+        let accessToken = generateAccessToken(ID);
+        let refreshToken = jwt.sign({_id: ID}, process.env.REFRESH_TOKEN_SECRET);
         res.cookie('refreshToken', refreshToken, {
             maxAge: 60*60*24*1000,
             httpOnly: true
@@ -63,8 +60,10 @@ module.exports.signInTokens = async function( req: IRequest, res:IResponse ) {
             userCreated : true,
             accessToken
         });
+        res.sendStatus(200);
     }
     catch(err){
+        console.log(err);
         res.status(400);
         res.json({
             userCreated: false,
@@ -73,7 +72,7 @@ module.exports.signInTokens = async function( req: IRequest, res:IResponse ) {
     }
 }
 
-module.exports.refreshToken = function (req: IRequest, res:IResponse, next:NextFunction){
+module.exports.refreshToken = async function (req: IRequest, res:IResponse, next:NextFunction){
     try{
         let cookie = req.cookies["refreshToken"];
         console.log(cookie);
@@ -101,7 +100,7 @@ module.exports.verifyUser = async function (req: IRequest, res:IResponse, next: 
         let authHeader = req.headers["authorization"];
         let token = authHeader && authHeader.split(" ")[1];
         let {_id} = jwt.verify(token , process.env.ACCESS_TOKEN_SECRET);
-        let user = await UserModel.findById(_id);
+        let user = await SQLUserModel.findOne({userId :_id});
         req.user = user;
         next();
     }
@@ -116,9 +115,9 @@ module.exports.verifyUser = async function (req: IRequest, res:IResponse, next: 
 
 module.exports.loginUser = async function (req: IRequest, res: IResponse, next: NextFunction){
     try{
-        let user = await UserModel.login(req.body.username, req.body.password);
-        let accessToken = generateAccessToken(user._id);
-        let refreshToken = jwt.sign({_id: user._id}, process.env.REFRESH_TOKEN_SECRET);
+        let user = await SQLUserModel.loginUser(req.body.username, req.body.password);
+        let accessToken = generateAccessToken(user.userId);
+        let refreshToken = jwt.sign({_id: user.userId}, process.env.REFRESH_TOKEN_SECRET);
         res.status(200);
         res.cookie('refreshToken', refreshToken, {
             maxAge: 60*60*24*1000,
@@ -151,7 +150,7 @@ module.exports.logOutfunction = async (req : IRequest, res : IResponse, next : N
 module.exports.validateUsername = async function(req : Request, res : Response){
     let username = req.query.username;
     try{
-        let username_db = await UserModel.findOne({
+        let username_db = await SQLUserModel.findOne({
             username
         });
         if(!username_db){
