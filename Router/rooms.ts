@@ -8,4 +8,6 @@ router.get('/checkRooms', verifyUser, roomController.checkRooms);
 
 router.post('/addRoom', verifyUser, roomController.addRoom);
 
+router.get('/validateRoomId', roomController.validateRoomId);
+
 module.exports = router;

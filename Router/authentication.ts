@@ -6,7 +6,9 @@ const {
     refreshToken,
     loginUser,
     logOutfunction,
-    validateUsername
+    validateUsername,
+    verifyUser,
+    getUser
 } = require("../middlewares/authentication");
 
 const router = Router();
@@ -22,5 +24,7 @@ router.post('/login', loginUser);
 router.get('/logout', logOutfunction);
 
 router.get('/validateUsername', validateUsername);
+
+router.get('/getUser', verifyUser, getUser);
 
 module.exports = router;
