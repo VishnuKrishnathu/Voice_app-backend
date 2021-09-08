@@ -3,15 +3,16 @@ const RoomModel = require("../models/RoomModel");
 
 interface IRequest extends Request {
     user : {
-        _id : string,
+        userId : string,
         emailId : string,
-        password : string
+        password : string,
+        username : string
     }
 }
 
 module.exports.checkRooms = async function(req : IRequest, res : Response){
     try{
-        let rooms = await RoomModel.find({owner : req.user._id});
+        let rooms = await RoomModel.find({owner : req.user.username});
         console.log("rooms", rooms)
         res.json({
             error : false,
@@ -31,16 +32,19 @@ module.exports.addRoom = async function(req : IRequest, res : Response){
         let {
             roomName,
             roomType,
-            voiceRoom,
             roomDescription
         } = req.body;
         let room = new RoomModel({
             roomName,
             roomType,
-            voiceRoom,
             roomDescription,
-            owner : req.user._id,
-            roomMembers : [req.user._id]
+            owner : req.user.username,
+            roomMembers : [{
+                username : req.user.username
+            }],
+            admin : [{
+                username : req.user.username
+            }]
         })
         await room.save();
         res.status(200).json({
@@ -54,5 +58,24 @@ module.exports.addRoom = async function(req : IRequest, res : Response){
             roomCreated : false,
             message: "Check the input fields and try again"
         })
+    }
+}
+
+module.exports.validateRoomId = async function(req :Request, res :Response) {
+    try{
+        let roomId = req.query.roomId;
+        let room = await RoomModel.findById(roomId);
+        console.log("room Validator", room);
+        if(room){
+            res.status(200).json({
+                roomFound : true
+            });
+            return;
+        }
+        res.sendStatus(404);
+    }
+    catch(err){
+        console.log(err);
+        res.sendStatus(500);
     }
 }

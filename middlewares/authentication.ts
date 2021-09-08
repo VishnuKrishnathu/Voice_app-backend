@@ -60,7 +60,6 @@ module.exports.signInTokens = async function( req: IRequest, res:IResponse ) {
             userCreated : true,
             accessToken
         });
-        res.sendStatus(200);
     }
     catch(err){
         console.log(err);
@@ -112,6 +111,17 @@ module.exports.verifyUser = async function (req: IRequest, res:IResponse, next: 
         });
     }
 }
+
+module.exports.getUser = async function (req : IRequest, res: Response){
+    try{
+        res.status(200).json(req.user);
+    }
+    catch(err){
+        console.log(err);
+        res.sendStatus(500);
+    }
+}
+    
 
 module.exports.loginUser = async function (req: IRequest, res: IResponse, next: NextFunction){
     try{
