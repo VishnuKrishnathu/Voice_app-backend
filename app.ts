@@ -6,7 +6,6 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const socketio = require("socket.io");
 const http = require('http');
-const { socketConnection } = require('./Router/socket_connection');
 
 // types import 👇
 import { Socket } from 'socket.io';
@@ -36,12 +35,34 @@ const io = socketio(server, {
     }
 });
 
-io.on('connection', function( socket: Socket) {
-    console.log('We have a connection!!!');
+// defining the user object model
+interface IUserModel {
+    emailId ?: string;
+    password ?: string;
+    username : string;
+}
+
+io.on('connection', async function( socket: Socket) {
+    console.log('We have a connection!!!', socket.id);
 
     socket.on('disconnect', function() {
         console.log("Disconnected");
     }) 
+
+    socket.on('send-message', function(message : string, roomId :string, userData : IUserModel){
+        if(message == "" || roomId == "") return;
+        console.log("message by socket >>>>", message);
+        socket.to(roomId).emit("receive-message", {
+            sender : userData.username,
+            message,
+            messageId : Math.floor( Math.random()*Date.now()+Math.random())
+        });
+    });
+
+    socket.on('join-room', function(roomId : string){
+        console.log("Room joined", roomId);
+        socket.join(roomId);
+    })
 });
 
 // Connect to mongodb database👇
