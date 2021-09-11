@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
-const {mySQLConnect} = require("../connection");
+// const {mySQLConnect} = require("../connection");
+import { mySQLConnect } from '../connection';
 
 class UsersSchema{
     private static date = new Date();
@@ -8,7 +9,7 @@ class UsersSchema{
     protected username : string;
     private createdAt : string;
     private updatedAt : string;
-    static TABLENAME = "users";
+    private static TABLENAME = "users";
     private static dateString = `${UsersSchema.date.getFullYear()}-${UsersSchema.date.getMonth() +1}-${UsersSchema.date.getDate()} ${UsersSchema.date.getHours()}:${UsersSchema.date.getMinutes()}:${UsersSchema.date.getSeconds()}`;
     constructor (emailId : string, password : string, username : string){
         let date = new Date();
@@ -82,6 +83,23 @@ class UsersSchema{
         catch(err){
             console.log(err);
             throw new Error("Wrong arguments passed to the loginUser function");
+        }
+    }
+
+    //Get values using regex
+    static async findUsingRegex(columnName : string, value : string, username : string, userId : number) {
+        try{
+            let connection = await mySQLConnect();
+            let QUERY_STRING = `SELECT * FROM ${UsersSchema.TABLENAME} as U
+            LEFT JOIN (SELECT * FROM friendlist WHERE friendlist.userId='${userId}') as T
+            ON U.userId=T.friendId
+            WHERE LOWER(U.${columnName}) REGEXP '${value}.*' AND U.${columnName} != '${username}'`;
+            let [ rows , fields ] = await connection.execute(QUERY_STRING);
+            console.log(rows);
+            return rows;
+        }catch(err){
+            console.log("Error find the username using REGEX", err);
+            throw Error("Error find the username using REGEX");
         }
     }
 }

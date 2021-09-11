@@ -8,7 +8,8 @@ const {
     logOutfunction,
     validateUsername,
     verifyUser,
-    getUser
+    getUser,
+    getUsernames
 } = require("../middlewares/authentication");
 
 const router = Router();
@@ -26,5 +27,7 @@ router.get('/logout', logOutfunction);
 router.get('/validateUsername', validateUsername);
 
 router.get('/getUser', verifyUser, getUser);
+
+router.get('/getUsernames', verifyUser, getUsernames);
 
 module.exports = router;

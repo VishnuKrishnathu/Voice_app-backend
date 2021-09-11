@@ -11,6 +11,7 @@ interface IUserModel {
     emailId ?: string;
     password ?: string;
     username ?: string;
+    userId ?: number;
 }
 
 // Interfaces👇
@@ -181,5 +182,20 @@ module.exports.validateUsername = async function(req : Request, res : Response){
             error : true,
             message : "Error in the backend"
         })
+    }
+}
+
+module.exports.getUsernames = async function getUsername(req : IRequest, res: Response){
+    try{
+        let { username, userId } = req.user;
+        let { value } = req.query;
+        let result = await SQLUserModel.findUsingRegex('username', value, username, userId);
+        res.status(200).json({
+            result
+        })
+    }
+    catch(err){
+        console.log(err);
+        res.sendStatus(500);
     }
 }
