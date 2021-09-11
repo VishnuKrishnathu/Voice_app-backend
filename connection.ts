@@ -3,7 +3,7 @@ let mysql = require("mysql2/promise");
 require("dotenv").config();
 
 // Connecting to the mysql server
-async function mySQLConnect(){
+export async function mySQLConnect(){
     try{
         let connection = await mysql.createConnection({
             host : process.env.MYSQL_HOST,
@@ -28,4 +28,4 @@ async function mySQLConnect(){
 //     console.log(`Connected as id ${connection.threadId}`);
 // });
 
-module.exports.mySQLConnect = mySQLConnect;
+// module.exports.mySQLConnect = mySQLConnect;

@@ -1,0 +1,8 @@
+SQLCRUD
+node_modules
+.gitignore
+dist/*.map
+dist/controllers/*.map
+dist/middlewares/*.map
+dist/models/*.map
+dist/Router/*.map
