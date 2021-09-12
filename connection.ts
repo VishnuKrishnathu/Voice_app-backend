@@ -1,31 +1,38 @@
+import { isModuleNamespaceObject } from "util/types";
+
 export {}
-let mysql = require("mysql2/promise");
+let mysql = require("mysql2");
 require("dotenv").config();
 
-// Connecting to the mysql server
-export async function mySQLConnect(){
-    try{
-        let connection = await mysql.createConnection({
-            host : process.env.MYSQL_HOST,
-            port : process.env.MYSQL_PORT,
-            user : process.env.MYSQL_USER,
-            password : process.env.MYSQL_PASSWORD,
-            database : process.env.MYSQL_DATABASE
-        });
-        return connection;
-    }catch(err){
-        console.log(err);
-        throw new Error("Error in connecting to the database");
+// const mypool = mysql.createPool();
+
+interface IPool{
+    host : string;
+    port : string;
+    user : string;
+    password : string;
+    database : string;
+    connectionLimit : number;
+}
+
+class MySQLConnector{
+    private pool : any;
+    constructor(pool : IPool){
+        this.pool = mysql.createPool(pool);
+    }
+
+    getPool(){
+        return this.pool.promise();
     }
 }
 
-// connection.connect(function (err: any) {
-//     if(err){
-//         console.log(`Something bad happended in the database`, err.stack);
-//         return;
-//     }
+const myPoolConnect = new MySQLConnector({
+    host : process.env.MYSQL_HOST,
+    port : process.env.MYSQL_PORT,
+    user : process.env.MYSQL_USER,
+    password : process.env.MYSQL_PASSWORD,
+    database : process.env.MYSQL_DATABASE,
+    connectionLimit : 20
+});
 
-//     console.log(`Connected as id ${connection.threadId}`);
-// });
-
-// module.exports.mySQLConnect = mySQLConnect;
+export const poolConnector = myPoolConnect.getPool();

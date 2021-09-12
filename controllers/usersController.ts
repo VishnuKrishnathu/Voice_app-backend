@@ -18,11 +18,13 @@ module.exports.sendRequest = async function(req :IRequest, res :Response){
     try{
         let { username } = req.body;
         let user = req.user;
+        console.log(user);
         if(username == user.username){
             res.sendStatus(404);
             return;
         }
         let result = await SQLUserModel.findOne({username});
+        console.log("send request >>>", result);
         let addFriend = new FriendlistSchema(user.userId, result.userId);
         await addFriend.sendRequest();
         res.status(200).json({

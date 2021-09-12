@@ -1,4 +1,4 @@
-import { mySQLConnect } from "../connection";
+import { poolConnector } from "../connection";
 
 export class FriendlistSchema {
     private static TABLENAME = 'friendlist';
@@ -12,11 +12,11 @@ export class FriendlistSchema {
 
     async sendRequest(){
         try{
-            let connection = await mySQLConnect();
+            let connection = poolConnector;
             let QUERY_STRING = `INSERT INTO ${FriendlistSchema.TABLENAME} (userId, friendId, pendingRequest)
             VALUES ('${this.userId}', '${this.firendId}', 1)`;
 
-            let [rows, fields] = await connection.execute(QUERY_STRING);
+            let [rows, fields] = await connection.query(QUERY_STRING);
             return {
                 rows,
                 fields
