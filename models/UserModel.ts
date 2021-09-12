@@ -1,6 +1,5 @@
 const bcrypt = require("bcrypt");
-// const {mySQLConnect} = require("../connection");
-import { mySQLConnect } from '../connection';
+import { poolConnector } from '../connection';
 
 class UsersSchema{
     private static date = new Date();
@@ -31,10 +30,10 @@ class UsersSchema{
 
     async save(){
         try{
-            let connection = await mySQLConnect();
+            let connection = poolConnector;
             let QUERY_STRING = `INSERT INTO ${UsersSchema.TABLENAME} (emailId, password, username, createdAt, updatedAt) 
             VALUES ('${this.emailId}', '${this.password}', '${this.username}', '${this.createdAt}', '${this.updatedAt}')`;
-            let [rows, fields] = await connection.execute(QUERY_STRING);
+            let [rows, fields] = await connection.query(QUERY_STRING);
             return {
                 rows,
                 fields
@@ -53,7 +52,7 @@ class UsersSchema{
     }) : Promise<any>{
         try{
             type Tdata = "emailId" | "password" | "username" | "userId";
-            let connection = await mySQLConnect();
+            let connection = poolConnector;
             let data : Tdata;
             let whereClause: Array<string | number> = [];
             for(data in userdata){
@@ -89,13 +88,15 @@ class UsersSchema{
     //Get values using regex
     static async findUsingRegex(columnName : string, value : string, username : string, userId : number) {
         try{
-            let connection = await mySQLConnect();
-            let QUERY_STRING = `SELECT * FROM ${UsersSchema.TABLENAME} as U
-            LEFT JOIN (SELECT * FROM friendlist WHERE friendlist.userId='${userId}') as T
+            let connection = poolConnector;
+            let QUERY_STRING = `SELECT U.userId as primaryUserId, emailId as emailAddress, username, friendId, pendingRequest AS requestSent FROM ${UsersSchema.TABLENAME} as U
+            LEFT JOIN (SELECT * FROM friendlist WHERE friendlist.userId='${userId}' OR friendlist.friendId='${userId}') as T
             ON U.userId=T.friendId
             WHERE LOWER(U.${columnName}) REGEXP '${value}.*' AND U.${columnName} != '${username}'`;
-            let [ rows , fields ] = await connection.execute(QUERY_STRING);
-            console.log(rows);
+
+            let NEW_QUERY_STRING = `SELECT Q.primaryUserId, Q.emailAddress, Q.username, Q.friendId as primaryFriendID, Q.requestSent, ${userId} AS USERID, friendlist.userId, friendlist.friendId FROM (${QUERY_STRING}) AS Q
+            LEFT JOIN friendlist ON USERID=friendlist.userId`;
+            let [ rows , fields ] = await connection.execute(NEW_QUERY_STRING);
             return rows;
         }catch(err){
             console.log("Error find the username using REGEX", err);

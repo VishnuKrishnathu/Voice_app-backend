@@ -190,12 +190,15 @@ module.exports.getUsernames = async function getUsername(req : IRequest, res: Re
         let { username, userId } = req.user;
         let { value } = req.query;
         let result = await SQLUserModel.findUsingRegex('username', value, username, userId);
+        console.log(result);
         res.status(200).json({
             result
         })
     }
     catch(err){
         console.log(err);
-        res.sendStatus(500);
+        res.status(500).json({
+            result : []
+        });
     }
 }
