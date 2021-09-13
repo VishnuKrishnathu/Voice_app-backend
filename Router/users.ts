@@ -6,4 +6,6 @@ const router = Router();
 
 router.post('/sendFriendRequest', Authentication.verifyUser, UsersController.sendRequest);
 
+router.post('/acceptRequest', Authentication.verifyUser, UsersController.acceptRequest);
+
 module.exports = router;

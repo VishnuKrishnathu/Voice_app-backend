@@ -85,18 +85,19 @@ class UsersSchema{
         }
     }
 
-    //Get values using regex
+    /*
+        primaryUserId : number,
+    */
     static async findUsingRegex(columnName : string, value : string, username : string, userId : number) {
         try{
             let connection = poolConnector;
-            let QUERY_STRING = `SELECT U.userId as primaryUserId, emailId as emailAddress, username, friendId, pendingRequest AS requestSent FROM ${UsersSchema.TABLENAME} as U
-            LEFT JOIN (SELECT * FROM friendlist WHERE friendlist.userId='${userId}' OR friendlist.friendId='${userId}') as T
-            ON U.userId=T.friendId
+            let QUERY_STRING = `SELECT U.userId as primaryUserId, U.emailId as emailAddress, U.username, T.friendId, T.pendingRequest AS requestSent,
+            T.userId as foreignUserID FROM ${UsersSchema.TABLENAME} as U
+            LEFT JOIN (SELECT * FROM friendlist WHERE friendlist.userId=${userId} OR friendlist.friendId=${userId} )as T
+            ON U.userId=T.userId OR U.userId=T.friendId
             WHERE LOWER(U.${columnName}) REGEXP '${value}.*' AND U.${columnName} != '${username}'`;
 
-            let NEW_QUERY_STRING = `SELECT Q.primaryUserId, Q.emailAddress, Q.username, Q.friendId as primaryFriendID, Q.requestSent, ${userId} AS USERID, friendlist.userId, friendlist.friendId FROM (${QUERY_STRING}) AS Q
-            LEFT JOIN friendlist ON USERID=friendlist.userId`;
-            let [ rows , fields ] = await connection.execute(NEW_QUERY_STRING);
+            let [ rows , fields ] = await connection.execute(QUERY_STRING);
             return rows;
         }catch(err){
             console.log("Error find the username using REGEX", err);
