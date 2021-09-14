@@ -18,7 +18,6 @@ module.exports.sendRequest = async function(req :IRequest, res :Response){
     try{
         let { username } = req.body;
         let user = req.user;
-        console.log(user);
         if(username == user.username){
             res.sendStatus(404);
             return;
@@ -38,5 +37,32 @@ module.exports.sendRequest = async function(req :IRequest, res :Response){
             requestSent: false,
             message : 'Error adding friend, try again later'
         });
+    }
+}
+
+module.exports.acceptRequest = async function(req :IRequest, res :Response){
+    try{
+        let { friendId } = req.body;
+        let { userId } = req.user;
+        let result = await FriendlistSchema.acceptRequest(userId, friendId);
+        res.status(200).json({
+            message : "Friend request accepted"
+        });
+    }
+    catch(err){
+        console.log(err);
+        res.sendStatus(500);
+    }
+}
+
+module.exports.searchFriends = async function(req :IRequest, res :Response){
+    try{
+        let { value } = req.query;
+        let { userId, username } = req.user;
+        let result = await SQLUserModel.findFriendsUsingRegex(value, username, userId);
+        res.status(200).json({result});
+    }catch(err){
+        console.log(err);
+        res.sendStatus(500);
     }
 }

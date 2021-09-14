@@ -85,22 +85,36 @@ class UsersSchema{
         }
     }
 
-    //Get values using regex
     static async findUsingRegex(columnName : string, value : string, username : string, userId : number) {
         try{
             let connection = poolConnector;
-            let QUERY_STRING = `SELECT U.userId as primaryUserId, emailId as emailAddress, username, friendId, pendingRequest AS requestSent FROM ${UsersSchema.TABLENAME} as U
-            LEFT JOIN (SELECT * FROM friendlist WHERE friendlist.userId='${userId}' OR friendlist.friendId='${userId}') as T
-            ON U.userId=T.friendId
+            let QUERY_STRING = `SELECT U.userId as value, U.emailId as emailAddress, U.username as label, T.friendId, T.pendingRequest AS requestSent,
+            T.userId as foreignUserID FROM ${UsersSchema.TABLENAME} as U
+            LEFT JOIN (SELECT * FROM friendlist WHERE friendlist.userId=${userId} OR friendlist.friendId=${userId} )as T
+            ON U.userId=T.userId OR U.userId=T.friendId
             WHERE LOWER(U.${columnName}) REGEXP '${value}.*' AND U.${columnName} != '${username}'`;
 
-            let NEW_QUERY_STRING = `SELECT Q.primaryUserId, Q.emailAddress, Q.username, Q.friendId as primaryFriendID, Q.requestSent, ${userId} AS USERID, friendlist.userId, friendlist.friendId FROM (${QUERY_STRING}) AS Q
-            LEFT JOIN friendlist ON USERID=friendlist.userId`;
-            let [ rows , fields ] = await connection.execute(NEW_QUERY_STRING);
+            let [ rows , fields ] = await connection.execute(QUERY_STRING);
             return rows;
         }catch(err){
             console.log("Error find the username using REGEX", err);
             throw Error("Error find the username using REGEX");
+        }
+    }
+
+    static async findFriendsUsingRegex(value :string, username: string, userId :number){
+        try{
+            let QUERY_STRING = `SELECT U.userId as value, U.username as label, F.userId as foreignUserId, F.friendId FROM users AS U
+            RIGHT JOIN (SELECT userId, friendId FROM friendlist WHERE (userId=${userId} OR friendId=${userId}) AND pendingRequest=0) AS F
+            ON U.userId=F.userId OR U.userId=F.friendId
+            WHERE LOWER(U.username) REGEXP '${value}.*' AND U.username != '${username}'`;
+
+            let [ rows, fields ] = await poolConnector.execute(QUERY_STRING);
+            return rows;
+        }
+        catch(err){
+            console.log(err);
+            throw new Error('Error finding the friend try again');
         }
     }
 }
