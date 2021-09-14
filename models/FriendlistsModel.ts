@@ -53,8 +53,6 @@ export class FriendlistSchema {
                 return ;
             }
 
-            // let QUERY_STRING = `INSERT INTO ${FriendlistSchema.TABLENAME} (userId, friendId, pendingRequest)
-            // VALUES ('${userId}', '${friendId}', 0)`;
             let UPDATE_STRING = `UPDATE ${FriendlistSchema.TABLENAME}
             SET pendingRequest=0 WHERE userId=${friendId} AND friendId=${userId}`;
 

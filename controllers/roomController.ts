@@ -79,3 +79,20 @@ module.exports.validateRoomId = async function(req :Request, res :Response) {
         res.sendStatus(500);
     }
 }
+
+module.exports.getRoomInfo = async function(req :Request, res :Response){
+    try{
+        let { roomId } = req.body;
+        let result = await RoomModel.findById(roomId);
+        console.log("room info", result);
+        if(!result){
+            res.sendStatus(404);
+            return;
+        }
+        res.status(200).json(result);
+    }
+    catch(err){
+        console.log(err);
+        res.sendStatus(500);
+    }
+}

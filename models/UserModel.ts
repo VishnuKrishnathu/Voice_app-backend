@@ -87,6 +87,11 @@ class UsersSchema{
 
     /*
         primaryUserId : number,
+        emailAddress : string,
+        username: string,
+        friendId : null | number,
+        requestSent : null | number,
+        foreignUserID : null | number
     */
     static async findUsingRegex(columnName : string, value : string, username : string, userId : number) {
         try{
