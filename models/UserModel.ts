@@ -85,18 +85,10 @@ class UsersSchema{
         }
     }
 
-    /*
-        primaryUserId : number,
-        emailAddress : string,
-        username: string,
-        friendId : null | number,
-        requestSent : null | number,
-        foreignUserID : null | number
-    */
     static async findUsingRegex(columnName : string, value : string, username : string, userId : number) {
         try{
             let connection = poolConnector;
-            let QUERY_STRING = `SELECT U.userId as primaryUserId, U.emailId as emailAddress, U.username, T.friendId, T.pendingRequest AS requestSent,
+            let QUERY_STRING = `SELECT U.userId as value, U.emailId as emailAddress, U.username as label, T.friendId, T.pendingRequest AS requestSent,
             T.userId as foreignUserID FROM ${UsersSchema.TABLENAME} as U
             LEFT JOIN (SELECT * FROM friendlist WHERE friendlist.userId=${userId} OR friendlist.friendId=${userId} )as T
             ON U.userId=T.userId OR U.userId=T.friendId
@@ -107,6 +99,22 @@ class UsersSchema{
         }catch(err){
             console.log("Error find the username using REGEX", err);
             throw Error("Error find the username using REGEX");
+        }
+    }
+
+    static async findFriendsUsingRegex(value :string, username: string, userId :number){
+        try{
+            let QUERY_STRING = `SELECT U.userId as value, U.username as label, F.userId as foreignUserId, F.friendId FROM users AS U
+            RIGHT JOIN (SELECT userId, friendId FROM friendlist WHERE (userId=${userId} OR friendId=${userId}) AND pendingRequest=0) AS F
+            ON U.userId=F.userId OR U.userId=F.friendId
+            WHERE LOWER(U.username) REGEXP '${value}.*' AND U.username != '${username}'`;
+
+            let [ rows, fields ] = await poolConnector.execute(QUERY_STRING);
+            return rows;
+        }
+        catch(err){
+            console.log(err);
+            throw new Error('Error finding the friend try again');
         }
     }
 }

@@ -8,4 +8,6 @@ router.post('/sendFriendRequest', Authentication.verifyUser, UsersController.sen
 
 router.post('/acceptRequest', Authentication.verifyUser, UsersController.acceptRequest);
 
+router.get('/searchFriends', Authentication.verifyUser, UsersController.searchFriends);
+
 module.exports = router;
