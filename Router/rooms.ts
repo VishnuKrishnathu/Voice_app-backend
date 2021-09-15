@@ -12,4 +12,6 @@ router.get('/validateRoomId', roomController.validateRoomId);
 
 router.post('/getRoomInfo', verifyUser, roomController.getRoomInfo);
 
+router.post('/editRoom', verifyUser, roomController.editRoom);
+
 module.exports = router;
