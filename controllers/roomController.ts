@@ -87,12 +87,15 @@ module.exports.getRoomInfo = async function(req :Request, res :Response){
     try{
         let { roomId } = req.body;
         let result = await RoomModel.findById(roomId);
-        console.log("room info", result);
+        let members = await SQLRoomMember.findMembersByRoomId(roomId);
         if(!result){
             res.sendStatus(404);
             return;
         }
-        res.status(200).json(result);
+        res.status(200).json({
+            result,
+            members
+        });
     }
     catch(err){
         console.log(err);

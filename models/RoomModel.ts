@@ -85,6 +85,21 @@ class SQLRoomMember {
             throw new Error("error deleting the room from MYSQL database");
         }
     }
+
+    static async findMembersByRoomId(roomId :string){
+        try{
+            let QUERY_STRING = `SELECT roomMembers.isAdmin, users.username as label, users.userId as value FROM ${SQLRoomMember.TABLENAME}
+            LEFT JOIN users
+            ON ${SQLRoomMember.TABLENAME}.memberId=users.userId
+            WHERE roomMembers.roomId='${roomId}'`;
+            let [ rows, fields ] = await poolConnector.execute(QUERY_STRING);
+            return rows;
+        }
+        catch(err){
+            console.log(err);
+            throw new Error("Error finding the room Members");
+        }
+    }
 }
 
 module.exports.SQLRoomMember = SQLRoomMember;

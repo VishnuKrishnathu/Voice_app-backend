@@ -102,14 +102,19 @@ class UsersSchema{
         }
     }
 
-    static async findFriendsUsingRegex(value :string, username: string, userId :number){
+    static async findFriendsUsingRegex(value :string, username: string, userId :number, roomId: string){
         try{
             let QUERY_STRING = `SELECT U.userId as value, U.username as label, F.userId as foreignUserId, F.friendId FROM users AS U
             RIGHT JOIN (SELECT userId, friendId FROM friendlist WHERE (userId=${userId} OR friendId=${userId}) AND pendingRequest=0) AS F
             ON U.userId=F.userId OR U.userId=F.friendId
             WHERE LOWER(U.username) REGEXP '${value}.*' AND U.username != '${username}'`;
 
-            let [ rows, fields ] = await poolConnector.execute(QUERY_STRING);
+            let QUERY_STRING_1 = `SELECT DISTINCT Z.value, Z.label FROM (${QUERY_STRING}) AS Z
+            LEFT JOIN roomMembers ON Z.value=roomMembers.memberId
+            WHERE roomMembers.roomId!='${roomId}'`;
+
+            let [ rows, fields ] = await poolConnector.execute(QUERY_STRING_1);
+            console.log("add members", rows);
             return rows;
         }
         catch(err){

@@ -57,9 +57,9 @@ module.exports.acceptRequest = async function(req :IRequest, res :Response){
 
 module.exports.searchFriends = async function(req :IRequest, res :Response){
     try{
-        let { value } = req.query;
+        let {value, roomId} = req.query;
         let { userId, username } = req.user;
-        let result = await SQLUserModel.findFriendsUsingRegex(value, username, userId);
+        let result = await SQLUserModel.findFriendsUsingRegex(value, username, userId, roomId);
         res.status(200).json({result});
     }catch(err){
         console.log(err);
