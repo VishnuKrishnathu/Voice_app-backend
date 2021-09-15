@@ -33,7 +33,7 @@ const roomModel = new Schema({
     timestamps: true
 });
 
-module.exports.RoomModel = model('Room', roomModel)
+module.exports.RoomModel = model('Room', roomModel);
 
 class SQLRoomMember {
     private roomId :string;
@@ -68,6 +68,21 @@ class SQLRoomMember {
         catch(err){
             console.log(err);
             throw new Error("Error in adding the admin to the database");
+        }
+    }
+
+    static async deleteRoom(roomId :string){
+        try{
+            let QUERY_STRING = `DELETE FROM ${SQLRoomMember.TABLENAME}
+            WHERE roomId='${roomId}'`;
+            let [rows, fields] = await poolConnector.execute(QUERY_STRING);
+            return {
+                rows
+            }
+        }
+        catch(err){
+            console.log(err);
+            throw new Error("error deleting the room from MYSQL database");
         }
     }
 }

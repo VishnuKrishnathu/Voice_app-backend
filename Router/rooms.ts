@@ -14,4 +14,6 @@ router.post('/getRoomInfo', verifyUser, roomController.getRoomInfo);
 
 router.post('/editRoom', verifyUser, roomController.editRoom);
 
+router.post('/deleteRoom', verifyUser, roomController.deleteRoom);
+
 module.exports = router;
