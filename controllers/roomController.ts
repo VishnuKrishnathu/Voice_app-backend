@@ -1,5 +1,5 @@
 import {Request, Response} from 'express';
-const RoomModel = require("../models/RoomModel");
+const {RoomModel, SQLRoomMember} = require("../models/RoomModel");
 
 interface IRequest extends Request {
     user : {
@@ -46,11 +46,13 @@ module.exports.addRoom = async function(req : IRequest, res : Response){
                 username : req.user.username
             }]
         })
-        await room.save();
+        room = await room.save();
+        // ading admin to SQL database
+        await SQLRoomMember.addAdmin(room._id, req.user.userId);
         res.status(200).json({
             roomCreated : true,
             message: "Room was successfully created"
-        })
+        });
     }
     catch(err){
         console.log(err);
@@ -90,6 +92,39 @@ module.exports.getRoomInfo = async function(req :Request, res :Response){
             return;
         }
         res.status(200).json(result);
+    }
+    catch(err){
+        console.log(err);
+        res.sendStatus(500);
+    }
+}
+
+interface ISearchResult {
+    value : number,
+    label: string,
+    friendId : null | number,
+    requestSent : null | number,
+    foreignUserID : null | number
+}
+
+module.exports.editRoom = async function(req :IRequest, res :Response){
+    try{
+        let {members, roomName, roomId} = req.body;
+        let room = await RoomModel.findById(roomId);
+        if(members){
+            let memberAdd = new SQLRoomMember(roomId, members, "value");
+            await memberAdd.addMember();
+            room.roomMembers.concat(members.map((member :ISearchResult) => {
+                return {
+                    username : member.label
+                }
+            }));
+        }
+        if(roomName){
+            room.roomName = roomName;
+        }
+        await room.save()
+        res.sendStatus(200);
     }
     catch(err){
         console.log(err);
