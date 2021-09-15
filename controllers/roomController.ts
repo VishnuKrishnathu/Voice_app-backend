@@ -139,6 +139,7 @@ module.exports.editRoom = async function(req :IRequest, res :Response){
 module.exports.deleteRoom = async function(req :IRequest, res :Response){
     try{
         let { roomId } = req.body;
+        let rooms = await RoomModel.find({owner : req.user.username});
         await RoomModel.deleteOne({_id : roomId});
         await SQLRoomMember.deleteRoom(roomId);
         res.sendStatus(200);
