@@ -1,5 +1,6 @@
 import {Request, Response} from 'express';
 const {RoomModel, SQLRoomMember} = require("../models/RoomModel");
+import {Types} from "mongoose";
 
 interface IRequest extends Request {
     user : {
@@ -111,19 +112,36 @@ module.exports.editRoom = async function(req :IRequest, res :Response){
     try{
         let {members, roomName, roomId} = req.body;
         let room = await RoomModel.findById(roomId);
+        console.log(members, roomName);
         if(members){
             let memberAdd = new SQLRoomMember(roomId, members, "value");
             await memberAdd.addMember();
-            room.roomMembers.concat(members.map((member :ISearchResult) => {
-                return {
+            members.forEach(function (member :ISearchResult) {
+                room.roomMembers.push({
+                    _id : new Types.ObjectId(),
                     username : member.label
-                }
-            }));
+                })
+            })
         }
         if(roomName){
             room.roomName = roomName;
         }
+        console.log("editing Room", room);
         await room.save()
+        res.sendStatus(200);
+    }
+    catch(err){
+        console.log(err);
+        res.sendStatus(500);
+    }
+}
+
+module.exports.deleteRoom = async function(req :IRequest, res :Response){
+    try{
+        let { roomId } = req.body;
+        let rooms = await RoomModel.find({owner : req.user.username});
+        await RoomModel.deleteOne({_id : roomId});
+        await SQLRoomMember.deleteRoom(roomId);
         res.sendStatus(200);
     }
     catch(err){
