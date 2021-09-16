@@ -65,13 +65,14 @@ class SQLRoomMember {
         }
     }
 
-    static async findRoomsById(userId :number){
+    static async findRoomsById(userId :number, editAccess :boolean){
         try{
             let TABLENAME = SQLRoomMember.TABLENAME;
-            let QUERY_STRING = `SELECT ${TABLENAME}.roomId, ${TABLENAME}.memberId, roomLookupTable.roomName FROM ${TABLENAME}
+            let ADMIN_QUERY  = editAccess ? `AND ${TABLENAME}.isAdmin=1` : ``
+            let QUERY_STRING = `SELECT ${TABLENAME}.roomId, ${TABLENAME}.memberId, roomLookupTable.roomName, roomLookupTable.mongoRoomId AS _id FROM ${TABLENAME}
             LEFT JOIN roomLookupTable ON ${TABLENAME}.roomId=roomLookupTable.entryId
-            WHERE memberId=${userId} AND NOT ISNULL(${TABLENAME}.roomId)`;
-            let [rows, fields] = poolConnector.execute(QUERY_STRING);
+            WHERE memberId=${userId} AND NOT ISNULL(${TABLENAME}.roomId) ${ADMIN_QUERY}`;
+            let [rows, fields] = await poolConnector.execute(QUERY_STRING);
             return rows;
         }
         catch(err){
@@ -111,7 +112,7 @@ class SQLRoomMember {
         }
     }
 
-    static async findMembersByRoomId(roomId :string){
+    static async findAdminsByRoomId(roomId :string, userId :number){
         try{
             let SQL_STRING = `SELECT roomMembers.roomId, roomMembers.memberId, roomLookupTable.mongoRoomId, roomLookupTable.roomName, roomMembers.pendingRequest, roomMembers.isAdmin
             FROM roomMembers LEFT JOIN roomLookupTable ON roomMembers.roomId=roomLookupTable.entryId`;
@@ -120,12 +121,30 @@ class SQLRoomMember {
             LEFT JOIN users
             ON S.memberId=users.userId
             WHERE S.mongoRoomId='${roomId}'`;
+
+            let CHECK_ADMIN = `SELECT * FROM (${SQL_STRING}) AS S
+            WHERE S.memberId=${userId} AND S.mongoRoomId='${roomId}' AND S.isAdmin=1`;
+
+            let [rowsAdmin, fieldsAdmin] = await poolConnector.execute(CHECK_ADMIN);
+            if(rowsAdmin.length == 0) throw new Error("user is not an admin");
             let [ rows, fields ] = await poolConnector.execute(QUERY_STRING);
-            return rows;
+            console.log(rows);
+            return {rows: rows};
         }
         catch(err){
             console.log(err);
             throw new Error("Error finding the room Members");
+        }
+    }
+
+    static async updateRoomName(roomname: string, roomId :string){
+        try{
+            let QUERY_STRING = `UPDATE roomLookupTable SET roomName='${roomname}' WHERE mongoRoomId='${roomId}'`;
+            await poolConnector.execute(QUERY_STRING);
+        }
+        catch(err){
+            console.log(err);
+            throw new Error("Error in updating the room name");
         }
     }
 }

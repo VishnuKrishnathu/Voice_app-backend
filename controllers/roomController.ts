@@ -13,7 +13,9 @@ interface IRequest extends Request {
 
 module.exports.checkRooms = async function(req : IRequest, res : Response){
     try{
-        let rooms = await RoomModel.find({owner : req.user.username});
+        let { editAccess } = req.body;
+
+        let rooms = await SQLRoomMember.findRoomsById(req.user.userId, editAccess);
         res.json({
             error : false,
             rooms
@@ -81,11 +83,12 @@ module.exports.validateRoomId = async function(req :Request, res :Response) {
     }
 }
 
-module.exports.getRoomInfo = async function(req :Request, res :Response){
+module.exports.getRoomInfo = async function(req :IRequest, res :Response){
     try{
         let { roomId } = req.body;
+        let { userId } = req.user;
         let result = await RoomModel.findById(roomId);
-        let members = await SQLRoomMember.findMembersByRoomId(roomId);
+        let members = await SQLRoomMember.findAdminsByRoomId(roomId, userId);
         if(!result){
             res.sendStatus(404);
             return;
@@ -125,6 +128,7 @@ module.exports.editRoom = async function(req :IRequest, res :Response){
         }
         if(roomName){
             room.roomName = roomName;
+            await SQLRoomMember.updateRoomName(roomName, roomId);
         }
         await room.save()
         res.sendStatus(200);
