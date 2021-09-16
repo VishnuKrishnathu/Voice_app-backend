@@ -113,10 +113,13 @@ class SQLRoomMember {
 
     static async findMembersByRoomId(roomId :string){
         try{
-            let QUERY_STRING = `SELECT roomMembers.isAdmin, users.username as label, users.userId as value FROM ${SQLRoomMember.TABLENAME}
+            let SQL_STRING = `SELECT roomMembers.roomId, roomMembers.memberId, roomLookupTable.mongoRoomId, roomLookupTable.roomName, roomMembers.pendingRequest, roomMembers.isAdmin
+            FROM roomMembers LEFT JOIN roomLookupTable ON roomMembers.roomId=roomLookupTable.entryId`;
+
+            let QUERY_STRING = `SELECT S.isAdmin, users.username as label, users.userId as value FROM (${SQL_STRING}) AS S
             LEFT JOIN users
-            ON ${SQLRoomMember.TABLENAME}.memberId=users.userId
-            WHERE roomMembers.roomId='${roomId}'`;
+            ON S.memberId=users.userId
+            WHERE S.mongoRoomId='${roomId}'`;
             let [ rows, fields ] = await poolConnector.execute(QUERY_STRING);
             return rows;
         }

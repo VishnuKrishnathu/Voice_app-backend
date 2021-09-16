@@ -112,16 +112,12 @@ class UsersSchema{
 
             let M_VALUES = `roomMembers.roomId, roomMembers.memberId, roomLookupTable.mongoRoomId`;
 
-            let QUERY_STRING_1 = `SELECT DISTINCT Z.value, Z.label FROM (${QUERY_STRING}) AS Z
+            let QUERY_STRING_1 = `SELECT DISTINCT Z.value, Z.label, M.mongoRoomId, M.memberId FROM (${QUERY_STRING}) AS Z
             LEFT JOIN (SELECT ${M_VALUES} FROM roomMembers LEFT JOIN roomLookupTable ON roomMembers.roomId=roomLookupTable.entryId) AS M
             ON Z.value=M.memberId
             WHERE M.mongoRoomId!='${roomId}' OR ISNULL(M.memberId)`;
-            // `;
-            let SQL_STRING = `SELECT ${M_VALUES} FROM roomMembers LEFT JOIN roomLookupTable ON roomMembers.roomId=roomLookupTable.entryId`;
-            console.log(SQL_STRING);
 
             let [ rows, fields ] = await poolConnector.execute(QUERY_STRING_1);
-            console.log("add members", rows);
             return rows;
         }
         catch(err){
