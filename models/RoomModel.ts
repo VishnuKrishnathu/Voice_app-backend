@@ -39,17 +39,24 @@ class SQLRoomMember {
     private roomId :string;
     private members :Array<any>;
     private static TABLENAME = "roomMembers";
-    private tableValues :Array<string>;
+    private keyname :string;
     constructor( roomId :string, members :Array<any>, keyname :string ){
         this.roomId = roomId;
         this.members = members;
-        this.tableValues = members.map(member => `('${roomId}', ${member[keyname]})`);
+        this.keyname = keyname;
     }
 
     async addMember(){
         try{
-            let QUERY_STRING = `INSERT INTO ${SQLRoomMember.TABLENAME} (roomId, memberId)
-            VALUES ${this.tableValues.toString()}`;
+            let QUERY_STRING_1 = `SELECT entryId from roomLookupTable WHERE mongoRoomId='${this.roomId}'`;
+            let [rowsLookup, filedslookup ] = await poolConnector.execute(QUERY_STRING_1);
+            if(!rowsLookup || rowsLookup.length !== 1){
+                throw new Error("Couldn't add members to the room");
+                return;
+            }
+            let tableValues = this.members.map(member => `(${rowsLookup[0].entryId}, ${member[this.keyname]}, 1)`);
+            let QUERY_STRING = `INSERT INTO ${SQLRoomMember.TABLENAME} (roomId, memberId, pendingRequest)
+            VALUES ${tableValues.toString()}`;
             let [rows, fileds ] = await poolConnector.execute(QUERY_STRING);
             return {rows};
         }catch(err){
@@ -58,11 +65,29 @@ class SQLRoomMember {
         }
     }
 
-    static async addAdmin(roomId :string, memberId :number){
+    static async findRoomsById(userId :number){
         try{
-            let QUERY_STRING = `INSERT INTO ${SQLRoomMember.TABLENAME} (roomId, memberId, isAdmin)
-            VALUES ('${roomId}', ${memberId}, 1)`;
-            let [rows, fileds ] = await poolConnector.execute(QUERY_STRING);
+            let TABLENAME = SQLRoomMember.TABLENAME;
+            let QUERY_STRING = `SELECT ${TABLENAME}.roomId, ${TABLENAME}.memberId, roomLookupTable.roomName FROM ${TABLENAME}
+            LEFT JOIN roomLookupTable ON ${TABLENAME}.roomId=roomLookupTable.entryId
+            WHERE memberId=${userId} AND NOT ISNULL(${TABLENAME}.roomId)`;
+            let [rows, fields] = poolConnector.execute(QUERY_STRING);
+            return rows;
+        }
+        catch(err){
+            console.log(err);
+            throw new Error("Error in finding the rooms by ID")
+        }
+    }
+
+    static async addAdmin(roomId :string, memberId :number, roomName :string){
+        try{
+            let QUERY_STRING = `INSERT INTO roomLookupTable (mongoRoomId, roomName)
+            VALUES ('${roomId}', '${roomName}')`;
+            let [ rowslookup, fieldslookup ] = await poolConnector.execute(QUERY_STRING);
+            let QUERY_STRING_1 = `INSERT INTO ${SQLRoomMember.TABLENAME} (roomId, memberId, isAdmin)
+            VALUES (${rowslookup.insertId}, ${memberId}, 1)`;
+            let [rows, fileds ] = await poolConnector.execute(QUERY_STRING_1);
             return {rows};
         }
         catch(err){
@@ -88,10 +113,13 @@ class SQLRoomMember {
 
     static async findMembersByRoomId(roomId :string){
         try{
-            let QUERY_STRING = `SELECT roomMembers.isAdmin, users.username as label, users.userId as value FROM ${SQLRoomMember.TABLENAME}
+            let SQL_STRING = `SELECT roomMembers.roomId, roomMembers.memberId, roomLookupTable.mongoRoomId, roomLookupTable.roomName, roomMembers.pendingRequest, roomMembers.isAdmin
+            FROM roomMembers LEFT JOIN roomLookupTable ON roomMembers.roomId=roomLookupTable.entryId`;
+
+            let QUERY_STRING = `SELECT S.isAdmin, users.username as label, users.userId as value FROM (${SQL_STRING}) AS S
             LEFT JOIN users
-            ON ${SQLRoomMember.TABLENAME}.memberId=users.userId
-            WHERE roomMembers.roomId='${roomId}'`;
+            ON S.memberId=users.userId
+            WHERE S.mongoRoomId='${roomId}'`;
             let [ rows, fields ] = await poolConnector.execute(QUERY_STRING);
             return rows;
         }

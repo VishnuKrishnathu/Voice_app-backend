@@ -14,7 +14,6 @@ interface IRequest extends Request {
 module.exports.checkRooms = async function(req : IRequest, res : Response){
     try{
         let rooms = await RoomModel.find({owner : req.user.username});
-        console.log("rooms", rooms)
         res.json({
             error : false,
             rooms
@@ -49,7 +48,7 @@ module.exports.addRoom = async function(req : IRequest, res : Response){
         })
         room = await room.save();
         // ading admin to SQL database
-        await SQLRoomMember.addAdmin(room._id, req.user.userId);
+        await SQLRoomMember.addAdmin(room._id, req.user.userId, roomName);
         res.status(200).json({
             roomCreated : true,
             message: "Room was successfully created"
@@ -68,7 +67,6 @@ module.exports.validateRoomId = async function(req :Request, res :Response) {
     try{
         let roomId = req.query.roomId;
         let room = await RoomModel.findById(roomId);
-        console.log("room Validator", room);
         if(room){
             res.status(200).json({
                 roomFound : true
@@ -115,7 +113,6 @@ module.exports.editRoom = async function(req :IRequest, res :Response){
     try{
         let {members, roomName, roomId} = req.body;
         let room = await RoomModel.findById(roomId);
-        console.log(members, roomName);
         if(members){
             let memberAdd = new SQLRoomMember(roomId, members, "value");
             await memberAdd.addMember();
@@ -129,7 +126,6 @@ module.exports.editRoom = async function(req :IRequest, res :Response){
         if(roomName){
             room.roomName = roomName;
         }
-        console.log("editing Room", room);
         await room.save()
         res.sendStatus(200);
     }
