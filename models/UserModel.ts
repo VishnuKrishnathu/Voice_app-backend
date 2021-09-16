@@ -34,6 +34,7 @@ class UsersSchema{
             let QUERY_STRING = `INSERT INTO ${UsersSchema.TABLENAME} (emailId, password, username, createdAt, updatedAt) 
             VALUES ('${this.emailId}', '${this.password}', '${this.username}', '${this.createdAt}', '${this.updatedAt}')`;
             let [rows, fields] = await connection.query(QUERY_STRING);
+            console.log("user created", rows);
             return {
                 rows,
                 fields
@@ -109,9 +110,15 @@ class UsersSchema{
             ON U.userId=F.userId OR U.userId=F.friendId
             WHERE LOWER(U.username) REGEXP '${value}.*' AND U.username != '${username}'`;
 
+            let M_VALUES = `roomMembers.roomId, roomMembers.memberId, roomLookupTable.mongoRoomId`;
+
             let QUERY_STRING_1 = `SELECT DISTINCT Z.value, Z.label FROM (${QUERY_STRING}) AS Z
-            LEFT JOIN roomMembers ON Z.value=roomMembers.memberId
-            WHERE roomMembers.roomId!='${roomId}'`;
+            LEFT JOIN (SELECT ${M_VALUES} FROM roomMembers LEFT JOIN roomLookupTable ON roomMembers.roomId=roomLookupTable.entryId) AS M
+            ON Z.value=M.memberId
+            WHERE M.mongoRoomId!='${roomId}' OR ISNULL(M.memberId)`;
+            // `;
+            let SQL_STRING = `SELECT ${M_VALUES} FROM roomMembers LEFT JOIN roomLookupTable ON roomMembers.roomId=roomLookupTable.entryId`;
+            console.log(SQL_STRING);
 
             let [ rows, fields ] = await poolConnector.execute(QUERY_STRING_1);
             console.log("add members", rows);
