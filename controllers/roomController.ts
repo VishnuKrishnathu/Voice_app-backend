@@ -78,7 +78,7 @@ module.exports.validateRoomId = async function(req :Request, res :Response) {
         res.sendStatus(404);
     }
     catch(err){
-        console.log(err);
+        console.log("Error in validating room Id", err);
         res.sendStatus(500);
     }
 }
