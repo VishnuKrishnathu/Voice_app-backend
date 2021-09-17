@@ -85,10 +85,10 @@ module.exports.validateRoomId = async function(req :Request, res :Response) {
 
 module.exports.getRoomInfo = async function(req :IRequest, res :Response){
     try{
-        let { roomId } = req.body;
+        let { roomId, checkAdmin } = req.body;
         let { userId } = req.user;
         let result = await RoomModel.findById(roomId);
-        let members = await SQLRoomMember.findAdminsByRoomId(roomId, userId);
+        let members = await SQLRoomMember.findMembersByRoomId(roomId, userId, checkAdmin);
         if(!result){
             res.sendStatus(404);
             return;
