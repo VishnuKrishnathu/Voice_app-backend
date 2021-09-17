@@ -112,7 +112,7 @@ class SQLRoomMember {
         }
     }
 
-    static async findAdminsByRoomId(roomId :string, userId :number){
+    static async findMembersByRoomId(roomId :string, userId :number, checkAdmin :boolean){
         try{
             let SQL_STRING = `SELECT roomMembers.roomId, roomMembers.memberId, roomLookupTable.mongoRoomId, roomLookupTable.roomName, roomMembers.pendingRequest, roomMembers.isAdmin
             FROM roomMembers LEFT JOIN roomLookupTable ON roomMembers.roomId=roomLookupTable.entryId`;
@@ -122,11 +122,14 @@ class SQLRoomMember {
             ON S.memberId=users.userId
             WHERE S.mongoRoomId='${roomId}'`;
 
-            let CHECK_ADMIN = `SELECT * FROM (${SQL_STRING}) AS S
-            WHERE S.memberId=${userId} AND S.mongoRoomId='${roomId}' AND S.isAdmin=1`;
+            // returns the results if checkAdmin is true
+            if(checkAdmin){
+                let CHECK_ADMIN = `SELECT * FROM (${SQL_STRING}) AS S
+                WHERE S.memberId=${userId} AND S.mongoRoomId='${roomId}' AND S.isAdmin=1`;
+                let [rowsAdmin, fieldsAdmin] = await poolConnector.execute(CHECK_ADMIN);
+                if(rowsAdmin.length == 0) throw new Error("user is not an admin");
+            }
 
-            let [rowsAdmin, fieldsAdmin] = await poolConnector.execute(CHECK_ADMIN);
-            if(rowsAdmin.length == 0) throw new Error("user is not an admin");
             let [ rows, fields ] = await poolConnector.execute(QUERY_STRING);
             console.log(rows);
             return {rows: rows};

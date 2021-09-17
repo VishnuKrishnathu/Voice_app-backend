@@ -78,17 +78,17 @@ module.exports.validateRoomId = async function(req :Request, res :Response) {
         res.sendStatus(404);
     }
     catch(err){
-        console.log(err);
+        console.log("Error in validating room Id", err);
         res.sendStatus(500);
     }
 }
 
 module.exports.getRoomInfo = async function(req :IRequest, res :Response){
     try{
-        let { roomId } = req.body;
+        let { roomId, checkAdmin } = req.body;
         let { userId } = req.user;
         let result = await RoomModel.findById(roomId);
-        let members = await SQLRoomMember.findAdminsByRoomId(roomId, userId);
+        let members = await SQLRoomMember.findMembersByRoomId(roomId, userId, checkAdmin);
         if(!result){
             res.sendStatus(404);
             return;
