@@ -33,9 +33,10 @@ const roomModel = new Schema({
     timestamps: true
 });
 
-module.exports.RoomModel = model('Room', roomModel);
+export const RoomModel = model('Room', roomModel);
+module.exports.RoomModel = RoomModel;
 
-class SQLRoomMember {
+export class SQLRoomMember {
     private roomId :string;
     private members :Array<any>;
     private static TABLENAME = "roomMembers";
@@ -69,7 +70,7 @@ class SQLRoomMember {
         try{
             let TABLENAME = SQLRoomMember.TABLENAME;
             let ADMIN_QUERY  = editAccess ? `AND ${TABLENAME}.isAdmin=1` : ``
-            let QUERY_STRING = `SELECT ${TABLENAME}.roomId, ${TABLENAME}.memberId, roomLookupTable.roomName, roomLookupTable.mongoRoomId AS _id FROM ${TABLENAME}
+            let QUERY_STRING = `SELECT ${TABLENAME}.isAdmin, ${TABLENAME}.roomId, ${TABLENAME}.memberId, roomLookupTable.roomName, roomLookupTable.mongoRoomId AS _id FROM ${TABLENAME}
             LEFT JOIN roomLookupTable ON ${TABLENAME}.roomId=roomLookupTable.entryId
             WHERE memberId=${userId} AND NOT ISNULL(${TABLENAME}.roomId) ${ADMIN_QUERY}`;
             let [rows, fields] = await poolConnector.execute(QUERY_STRING);

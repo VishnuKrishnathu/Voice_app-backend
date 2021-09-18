@@ -10,4 +10,6 @@ router.post('/acceptRequest', Authentication.verifyUser, UsersController.acceptR
 
 router.get('/searchFriends', Authentication.verifyUser, UsersController.searchFriends);
 
+router.post('/getProfileInformation', Authentication.verifyUser, UsersController.getProfileInformation);
+
 module.exports = router;

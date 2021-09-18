@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 const { SQLUserModel } = require("../models/UserModel");
+import { SQLRoomMember } from "../models/RoomModel";
 import { FriendlistSchema } from '../models/FriendlistsModel';
 
 
@@ -63,6 +64,18 @@ module.exports.searchFriends = async function(req :IRequest, res :Response){
         res.status(200).json({result});
     }catch(err){
         console.log(err);
+        res.sendStatus(500);
+    }
+}
+
+module.exports.getProfileInformation = async function(req :IRequest, res :Response){
+    try{
+        let { userId } = req.user;
+        let rooms = await SQLRoomMember.findRoomsById(userId, false);
+        res.status(200).json({rooms})
+    }
+    catch(err){
+        console.log("error in getting the profile information", err);
         res.sendStatus(500);
     }
 }
