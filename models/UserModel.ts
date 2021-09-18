@@ -125,6 +125,21 @@ class UsersSchema{
             throw new Error('Error finding the friend try again');
         }
     }
+
+    static async getProfileInformation(userId :number){
+        try{
+            let FRIENDS_QUERY = `SELECT users.username FROM users
+            RIGHT JOIN (SELECT * FROM friendlist WHERE (friendlist.userId=${userId} OR friendlist.friendId=${userId}) AND friendlist.pendingRequest=0) AS F
+            ON users.userId=F.friendId OR users.userId=F.userId
+            WHERE users.userId!=${userId}`;
+
+            let [rows, fields] = await poolConnector.execute(FRIENDS_QUERY);
+            return rows;
+        }catch(err){
+            console.log(err);
+            throw new Error('Error in getting friends from the database');
+        }
+    }
 }
 
 module.exports.SQLUserModel = UsersSchema;

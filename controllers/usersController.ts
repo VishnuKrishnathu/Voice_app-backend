@@ -70,9 +70,10 @@ module.exports.searchFriends = async function(req :IRequest, res :Response){
 
 module.exports.getProfileInformation = async function(req :IRequest, res :Response){
     try{
-        let { userId } = req.user;
+        let { userId } = req.body;
         let rooms = await SQLRoomMember.findRoomsById(userId, false);
-        res.status(200).json({rooms})
+        let friends = await SQLUserModel.getProfileInformation(userId);
+        res.status(200).json({rooms, friends})
     }
     catch(err){
         console.log("error in getting the profile information", err);
