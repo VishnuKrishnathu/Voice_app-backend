@@ -4,8 +4,6 @@ export {}
 let mysql = require("mysql2");
 require("dotenv").config();
 
-// const mypool = mysql.createPool();
-
 interface IPool{
     host : string;
     port : string;
