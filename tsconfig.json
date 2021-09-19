@@ -16,6 +16,7 @@
     },
     "include": [
         "app.ts",
+        "socket.ts",
         "connection.ts",
         "Router/*",
         "models/*",
