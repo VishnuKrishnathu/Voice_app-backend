@@ -1,3 +1,16 @@
+/*
+ * Variables to add in dotenv file
+ * 1. MONGO_USER
+ * 2. MONGO_PASSWORD
+ * 3. PORT
+ * 4. MYSQL_HOST
+ * 5. MYSQL_PORT
+ * 6. MYSQL_USER
+ * 7. MYSQL_DATABASE
+ * 8. MYSQL_PASSWORD
+ * 9. ACCESS_TOKEN_SECRET
+ * 10. REFRESH_TOKEN_SECRET
+ */
 const express = require("express");
 const authentication = require("./Router/authentication");
 const rooms = require("./Router/rooms");
@@ -14,7 +27,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: ['https://chatapplication-vishnukrishnathu.vercel.app', 'https://chatapplication-git-main-vishnukrishnathu.vercel.app', 'https://chatapplication-puce.vercel.app'],
     credentials: true
 }));
 
