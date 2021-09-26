@@ -30,7 +30,7 @@ const myPoolConnect = new MySQLConnector({
     user : process.env.MYSQL_USER,
     password : process.env.MYSQL_PASSWORD,
     database : process.env.MYSQL_DATABASE,
-    connectionLimit : 20
+    connectionLimit : 3
 });
 
 export const poolConnector = myPoolConnect.getPool();
